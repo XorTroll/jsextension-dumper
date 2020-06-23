@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <script type="text/javascript">
+            function dumpJsObject(obj_name, obj, done_obj_types) {
+                var queued_obj_names = [];
+                alert("Starting dump of '" + obj_name + "'...");
+                window.nx.sendMessage("*$" + obj_name);
+                var str = "";
+                for(var id in obj) {
+                    var elm = obj[id];
+                    var msg = "[ Type: '" + typeof(elm) + "', Name: '" + id + "', Item: '" + elm.toString() + "' ],\n";
+                    if(typeof(elm) == "object") {
+                        if(done_obj_types.indexOf(elm) < 0) {
+                            done_obj_types.push(elm);
+                            var obj_full_name = obj_name + "." + id;
+                            alert("Queuing object '" + obj_full_name + "' to be dumped later");
+                            queued_obj_names.push(obj_full_name);
+                        }
+                    }
+                    str += msg;
+                }
+                window.nx.sendMessage(str);
+
+                alert("Dump of '" + obj_name + "' finished - dumping other queued objects...");
+                queued_obj_names.forEach((value, index) => {
+                    dumpJsObject(value, eval(value), done_obj_types);
+                });
+            }
+
+            function dumpJsObjectByName(obj_name) {
+                var done_obj_types = [];
+                dumpJsObject(obj_name, eval(obj_name), done_obj_types);
+                alert("Everything finished :)");
+            }
+        </script>
+    </head>
+
+    <body>
+        <h1>JsExtension dumper</h1>
+        <input id="JsObjName" type="text" value="window.nx">
+        <input type="button" value="Dump JavaScript object" onclick='dumpJsObjectByName(document.getElementById("JsObjName").value);'/>
+    </body>
+</html>
